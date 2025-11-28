@@ -1,49 +1,46 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-// contract MultiWill {
-//     struct Will {
-//         address recipient;
-//         uint256 amount;
-//         bool claimed;
-//     }
+contract DebtRegistry {
 
-//     mapping(address => Will[]) public wills; // Each owner can have multiple wills
+    // Mapping: debtor => creditor => amount
+    mapping(address => mapping(address => uint256)) public debts;
 
-//     function createWill(address _recipient) public payable {
-//         require(_recipient != address(0), "Invalid recipient address");
-//         require(msg.value > 0, "Amount must be greater than zero");
+    // Events
+    event DebtAdded(address indexed debtor, address indexed creditor, uint256 amount);
+    event DebtUpdated(address indexed debtor, address indexed creditor, uint256 newAmount);
+    event DebtCleared(address indexed debtor, address indexed creditor);
 
-//         wills[msg.sender].push(Will({
-//             recipient: _recipient,
-//             amount: msg.value,
-//             claimed: false
-//         }));
-//     }
+    // Add debt (debtor adds how much they owe creditor)
+    function addDebt(address creditor, uint256 amount) external {
+        require(creditor != address(0), "Invalid creditor");
+        require(amount > 0, "Amount must be > 0");
 
-//     function claimWill(address _owner, uint256 _index) public {
-//         require(_index < wills[_owner].length, "Invalid will index");
+        debts[msg.sender][creditor] += amount;
 
-//         Will storage userWill = wills[_owner][_index];
-//         require(msg.sender == userWill.recipient, "Only recipient can claim");
-//         require(!userWill.claimed, "Already claimed");
-//         require(userWill.amount > 0, "No funds to claim");
+        emit DebtAdded(msg.sender, creditor, amount);
+    }
 
-//         userWill.claimed = true;
-//         payable(userWill.recipient).transfer(userWill.amount);
-//     }
+    // Update an existing debt (overwrite)
+    function updateDebt(address creditor, uint256 newAmount) external {
+        require(creditor != address(0), "Invalid creditor");
 
-//     function getMyWillsCount() public view returns (uint256) {
-//         return wills[msg.sender].length;
-//     }
+        debts[msg.sender][creditor] = newAmount;
 
-//     function getWill(address _owner, uint256 _index) public view returns (address recipient, uint256 amount, bool claimed) {
-//         require(_index < wills[_owner].length, "Invalid will index");
-//         Will memory userWill = wills[_owner][_index];
-//         return (userWill.recipient, userWill.amount, userWill.claimed);
-//     }
+        emit DebtUpdated(msg.sender, creditor, newAmount);
+    }
 
-//     function getContractBalance() public view returns (uint256) {
-//         return address(this).balance;
-//     }
-// }
+    // Clear debt (set to zero)
+    function clearDebt(address creditor) external {
+        require(creditor != address(0), "Invalid creditor");
+
+        debts[msg.sender][creditor] = 0;
+
+        emit DebtCleared(msg.sender, creditor);
+    }
+
+    // View a specific debt
+    function getDebt(address debtor, address creditor) external view returns (uint256) {
+        return debts[debtor][creditor];
+    }
+}

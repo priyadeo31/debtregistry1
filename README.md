@@ -3,7 +3,7 @@
 # **Debt Registry – Smart Contract & Frontend Integration**
 
 ## **Contract Address**
-`NOT_SET`  
+**0x6A2562d75b0Fa2268a499c2A4a79c83bc2c8BDA6**  
 Explorer Link: (https://coston2-explorer.flare.network/address/0x6A2562d75b0Fa2268a499c2A4a79c83bc2c8BDA6)
 
 ---
